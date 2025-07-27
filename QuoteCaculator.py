@@ -89,7 +89,7 @@ def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_
 
 # Streamlit UI
 st.set_page_config(page_title="MiniKreators Quote Calculator", layout="centered")
-st.markdown("<div style='text-align: center'><img src='creatorslogo-v2-W.png' width='200'></div>", unsafe_allow_html=True)
+st.image("creatorslogo-v2-W.png", width=200)
 st.title("MiniKreators Quote Calculator")
 
 qty = st.number_input("Quantity of MiniKreators (min 25):", min_value=25, step=1)
@@ -115,12 +115,11 @@ packaging = st.checkbox("Add Custom Packaging ($100 per design)", disabled=packa
 keychain = st.checkbox("Convert to Keychains ($3 per figure)")
 discount_addons = st.checkbox("Apply 10% discount on all add-ons (Pro/Premium only)", value=(package_tier != "Starter Package"), disabled=True)
 
-if st.button("Calculate Quote"):
-    quote = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
-    st.markdown(quote)
-
-st.markdown("\n---")
-col1, col2, col3 = st.columns([1, 1, 1])
+col1, col2 = st.columns([1, 1])
+with col1:
+    if st.button("Calculate Quote"):
+        quote = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
+        st.markdown(quote)
 with col2:
     st.link_button("Return to MiniKreators", "https://minikretors.com")
 
