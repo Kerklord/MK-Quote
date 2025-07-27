@@ -154,11 +154,17 @@ if show_quote:
     st.markdown("\n".join(quote_lines))
 
 if show_gp_prompt:
+    st.session_state["show_gp"] = True
+
+if st.session_state.get("show_gp"):
     pw = st.text_input("Enter password to view GP-Cal results:", type="password", key="gp_pw")
-    if pw == "5150":
-        final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, package_tier)
-        st.markdown(quote)
-    elif pw:
-        st.error("Incorrect password.")
+    if pw and st.button("Submit Password"):
+        if pw == "5150":
+            final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, package_tier)
+            st.markdown(quote)
+            st.session_state["show_gp"] = False
+        else:
+            st.error("Incorrect password.")
+            st.session_state["show_gp"] = False
 
 st.markdown("\n---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>", unsafe_allow_html=True)
