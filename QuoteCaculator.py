@@ -35,82 +35,58 @@ def calculate_quote(
     else:
         discount_rate = 0
 
-    # Premium Package gets 10% off figures
+    # Package figure discounts
     if package_tier == "Premium Package":
         discount_rate = 0.10
-    # Enterprise Package gets 15% off figures
     if package_tier == "Enterprise Package":
         discount_rate = 0.15
 
-    # Base costs
+    # Base costs for figures
     base_cost_per_figure = 12.50
     labor_per_figure = 2
     base_cost = (base_cost_per_figure + labor_per_figure) * qty
     base_cost *= (1 - discount_rate)
     total_with_margin = base_cost * 1.15
 
+    # Initialize add-on discount factor
+    add_on_discount = 0.0
+    if package_tier == "Pro Package":
+        add_on_discount = 0.10
+    if package_tier == "Premium Package":
+        add_on_discount = 0.10
+    if package_tier == "Enterprise Package":
+        add_on_discount = 0.15
+
     # Add-on fees
     character_design = 0 if design_paid else 85
-    commercial_rights = 0
-    packaging_design_fee = 0 if packaging_design_paid else (100 if packaging else 0)
-    branding_removal_fee = 0 if branding_paid else 85
-    ad_package = 0
+    commercial_rights = 25 if commercial else 0
+    packaging_design_fee = 100 if packaging and not packaging_design_paid else 0
+    branding_removal_fee = 85 if packaging and not branding_paid else 0
+    ad_package = 500 if package_tier == "Premium Package" else 0
     part_sourcing_fee = 25 if part_sourcing else 0
     custom_parts_cost = custom_parts_qty * qty * 4
-
-    # Landing page & domain
-    landing_page_fee = 350 if landing_page else 0
-    domain_fee = domain_count * 85 if landing_page else 0
-
-    # Package-level overrides for special packages
-    if package_tier == "Pro Package":
-        commercial_rights = 25 * 0.9
-        part_sourcing_fee = 25
-    elif package_tier == "Premium Package":
-        commercial_rights = 25 * 0.9
-        packaging_design_fee = 0 if packaging_design_paid else 100 * 0.9
-        ad_package = 500 * 0.9
-        landing_page_fee = 350
-    elif package_tier == "Enterprise Package":
-        commercial_rights = 0
-        packaging_design_fee = 0
-        branding_removal_fee = 0
-        ad_package = 0
-        landing_page_fee = 350
-        part_sourcing_fee = 25
-        # Apply 15% off all add-on fees included
-        discount_factor = 0.15
-        commercial_rights *= (1 - discount_factor)
-        packaging_design_fee *= (1 - discount_factor)
-        branding_removal_fee *= (1 - discount_factor)
-        ad_package *= (1 - discount_factor)
-        part_sourcing_fee *= (1 - discount_factor)
-        custom_parts_cost *= (1 - discount_factor)
-        landing_page_fee *= (1 - discount_factor)
-        domain_fee *= (1 - discount_factor)
-    else:
-        commercial_rights = 25 if commercial else 0
-
-    # Packaging & keychain production costs
     packaging_cost = 0
     if packaging or package_tier in ["Premium Package", "Enterprise Package"]:
-        if keychain:
-            packaging_cost = 2 * qty
-        else:
-            per_package_cost = 4.50
-            if qty > 75:
-                per_package_cost *= 0.97
-            packaging_cost = per_package_cost * qty
-
+        packaging_cost = 2 * qty if keychain else 4.50 * qty
     keychain_cost = 3 * qty if keychain else 0
+    landing_page_fee = 350 if (landing_page or package_tier in ["Premium Package", "Enterprise Package"]) else 0
+    domain_fee = domain_count * 85 if landing_page or package_tier in ["Premium Package", "Enterprise Package"] else 0
+
+    # Apply add-on discounts
+    if add_on_discount > 0:
+        commercial_rights *= (1 - add_on_discount)
+        packaging_design_fee *= (1 - add_on_discount)
+        branding_removal_fee *= (1 - add_on_discount)
+        ad_package *= (1 - add_on_discount)
+        part_sourcing_fee *= (1 - add_on_discount)
+        custom_parts_cost *= (1 - add_on_discount)
+        packaging_cost *= (1 - add_on_discount)
+        keychain_cost *= (1 - add_on_discount)
+        landing_page_fee *= (1 - add_on_discount)
+        domain_fee *= (1 - add_on_discount)
 
     # Shipping cost estimate based on weight
-    base_weight = 15 * qty + 50
-    if keychain:
-        base_weight = 12 * qty + 50
-    else:
-        base_weight += 3 * qty
-
+    base_weight = (12 if keychain else 15) * qty + 50 + (3 * qty if not keychain else 0)
     def estimate_shipping(weight):
         if weight <= 100:
             return 12.00
@@ -124,7 +100,6 @@ def calculate_quote(
             return 26.00
         else:
             return 30.00
-
     shipping_cost = estimate_shipping(base_weight)
 
     # Service charge: base rate, +15% if qty>=75, plus modifiers
@@ -171,10 +146,8 @@ def calculate_quote(
         f"- Estimated Shipping: ${shipping_cost:.2f}\n"
         f"- **Total: ${final_quote:.2f}**"
     )
-
     if with_profit:
         quote_summary += f"\n- **Estimated Profit: ${profit:.2f}**"
-
     return final_quote, profit, quote_summary
 
 # Streamlit App UI
@@ -193,15 +166,14 @@ package_tier = st.selectbox(
     "Choose a Package:",
     ["Starter Package", "Pro Package", "Premium Package", "Enterprise Package"]
 )
-
 if package_tier == "Starter Package":
     st.markdown("**Includes:** 25 MiniKreators + Character Design (1 revision included, +$50 per additional revision)")
 elif package_tier == "Pro Package":
     st.markdown("**Includes:** Starter Package + Priority Review + 10% off Add-ons + Commercial Rights + We Handle Part Sourcing")
 elif package_tier == "Premium Package":
-    st.markdown("**Includes:** Pro Package + Custom Packaging + 2D/3D Ad Package + Custom Landing Page + 10% off figures")
+    st.markdown("**Includes:** Pro Package + Custom Packaging + 2D/3D Ad Package + Custom Landing Page + 10% off add-ons")
 elif package_tier == "Enterprise Package":
-    st.markdown("**Includes:** Everything from Premium Package + Remove Branding + We Handle Part Sourcing + 15% off all included add-ons")
+    st.markdown("**Includes:** Everything from Premium Package + Remove Branding + We Handle Part Sourcing + 15% off add-ons")
 
 st.subheader("Optional Add-ons")
 commercial_disabled = package_tier in ["Pro Package", "Premium Package", "Enterprise Package"]
@@ -210,9 +182,10 @@ landing_disabled = package_tier == "Enterprise Package"
 
 commercial = st.checkbox("Add Commercial Rights ($25 per design)", disabled=commercial_disabled)
 packaging = st.checkbox("Add Custom Packaging ($100 per design)", disabled=packaging_disabled)
-branding_removal = False
 if packaging:
     branding_removal = st.checkbox("Remove MiniKreator Branding ($85)", disabled=branding_paid)
+else:
+    branding_removal = False
 keychain = st.checkbox("Convert to Keychains ($3 per figure)")
 custom_parts_qty = st.number_input("Number of Custom Parts per Figure ($4 each)", min_value=0, step=1)
 part_sourcing = st.checkbox("MiniKreators will handle Part Sourcing ($25)")
@@ -220,18 +193,17 @@ landing_page = st.checkbox(
     "Custom Landing Page (shopqzr.com/minikreators/yourname) ($350)",
     disabled=landing_disabled
 )
-# Ensure landing page is enabled for Enterprise
 if package_tier == "Enterprise Package":
     landing_page = True
-
-# Domain count now accessible for Enterprise pack
-domain_count = 0
+# Domain count input
 if landing_page:
     domain_count = st.number_input(
         "Number of Custom Domains ($85 per domain for first year, $55/year after)",
         min_value=0,
         step=1
     )
+else:
+    domain_count = 0
 
 col1, col2, col3 = st.columns([1, 1, 1])
 with col1:
@@ -256,7 +228,6 @@ if show_quote:
 
 if show_gp_prompt:
     st.session_state["show_gp"] = True
-
 if st.session_state.get("show_gp"):
     pw = st.text_input("Enter password:", type="password", key="gp_pw")
     if pw == "5150":
@@ -286,7 +257,6 @@ if st.session_state.get("show_gp"):
             st.session_state["show_gp"] = False
     elif pw:
         st.error("Incorrect password.")
-        # allow retry without closing prompt
 
 st.markdown(
     "\n---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>",
