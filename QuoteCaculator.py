@@ -224,13 +224,13 @@ landing_page = st.checkbox(
 if package_tier == "Enterprise Package":
     landing_page = True
 
+# Domain count now accessible for Enterprise pack
 domain_count = 0
 if landing_page:
     domain_count = st.number_input(
         "Number of Custom Domains ($85 per domain for first year, $55/year after)",
         min_value=0,
-        step=1,
-        disabled=landing_disabled
+        step=1
     )
 
 col1, col2, col3 = st.columns([1, 1, 1])
