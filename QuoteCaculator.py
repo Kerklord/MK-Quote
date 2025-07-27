@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 
-def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, discount_addons, part_sourcing, package_tier):
+def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, package_tier):
     if qty < 25:
         return 0, 0, "❌ Minimum order quantity is 25."
 
@@ -33,6 +33,8 @@ def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packagi
     keychain_cost = 0
     ad_package = 0
     part_sourcing_fee = 25 if part_sourcing else 0
+    custom_parts_cost = custom_parts_qty * 4
+    custom_parts_profit = custom_parts_cost * 0.5
 
     if package_tier == "Pro Package":
         commercial_rights = 25 * 0.9
@@ -83,10 +85,10 @@ def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packagi
 
     shipping_cost = estimate_shipping(total_weight)
 
-    final_quote = total_with_margin + character_design + commercial_rights + packaging_design_fee + packaging_cost + keychain_cost + ad_package + part_sourcing_fee + shipping_cost
+    final_quote = total_with_margin + character_design + commercial_rights + packaging_design_fee + packaging_cost + keychain_cost + ad_package + part_sourcing_fee + custom_parts_cost + shipping_cost
 
-    # Profit includes design, commercial rights, ad package, packaging, and part sourcing
-    total_cost = base_cost + packaging_cost + shipping_cost
+    # Profit includes design, commercial rights, ad package, packaging, part sourcing, and 50% of custom parts
+    total_cost = base_cost + packaging_cost + shipping_cost + (custom_parts_cost * 0.5)
     profit = final_quote - total_cost
 
     quote_summary = (f"### Quote Summary\n"
@@ -98,6 +100,7 @@ def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packagi
                      f"- Custom Packaging Design Fee: ${packaging_design_fee:.2f}\n"
                      f"- Custom Packaging Production: ${packaging_cost:.2f}\n"
                      f"- Keychains: ${keychain_cost:.2f}\n"
+                     f"- Custom Parts: ${custom_parts_cost:.2f}\n"
                      f"- Ad Package (Premium only): ${ad_package:.2f}\n"
                      f"- Part Sourcing: ${part_sourcing_fee:.2f}\n"
                      f"- Estimated Shipping: ${shipping_cost:.2f}\n"
@@ -133,6 +136,7 @@ packaging_disabled = package_tier == "Premium Package" or packaging_design_paid
 commercial = st.checkbox("Add Commercial Rights ($25 per design)", disabled=commercial_disabled)
 packaging = st.checkbox("Add Custom Packaging ($100 per design)", disabled=packaging_disabled)
 keychain = st.checkbox("Convert to Keychains ($3 per figure)")
+custom_parts_qty = st.number_input("Number of Custom Parts ($4 each)", min_value=0, step=1)
 part_sourcing = st.checkbox("MiniKreators will handle Part Sourcing ($25)")
 discount_addons = st.checkbox("Apply 10% discount on all add-ons (Pro/Premium only)", value=(package_tier != "Starter Package"), disabled=True)
 
@@ -145,7 +149,7 @@ with col3:
     show_gp_prompt = st.button("GP-Cal")
 
 if show_quote:
-    final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, discount_addons, part_sourcing, package_tier)
+    final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, package_tier)
     quote_lines = quote.split("\n")[:-1]  # remove the profit line
     st.markdown("\n".join(quote_lines))
 
@@ -156,7 +160,7 @@ if show_gp_prompt:
 if st.session_state.get("gp_cal_show"):
     pw = st.text_input("Enter password to view GP-Cal results:", type="password", key="gp_pw")
     if pw == "5150":
-        final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, discount_addons, part_sourcing, package_tier)
+        final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, package_tier)
         st.markdown(quote)
         st.session_state.gp_cal_show = False
     elif pw:
