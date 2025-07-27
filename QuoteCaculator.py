@@ -165,7 +165,7 @@ elif package_tier == "Pro Package":
 elif package_tier == "Premium Package":
     st.markdown("**Includes:** Pro Package + Custom Packaging + 2D/3D Ad Package (10% off) + Social Media Showcase + Custom Landing Page")
 elif package_tier == "Enterprise Package":
-    st.markdown("**Includes:** Everything from Premium Package + Remove Branding + Custom Landing Page — 50% off all add-ons featured in this package")
+    st.markdown("**Includes:** Everything from Premium Package + Remove Branding + Custom Landing Page + We Handle Part Sourcing — 50% off all add-ons featured in this package")
 
 st.subheader("Optional Add-ons")
 commercial_disabled = package_tier in ["Pro Package", "Premium Package", "Enterprise Package"]
