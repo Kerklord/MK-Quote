@@ -136,7 +136,7 @@ packaging_disabled = package_tier == "Premium Package" or packaging_design_paid
 commercial = st.checkbox("Add Commercial Rights ($25 per design)", disabled=commercial_disabled)
 packaging = st.checkbox("Add Custom Packaging ($100 per design)", disabled=packaging_disabled)
 keychain = st.checkbox("Convert to Keychains ($3 per figure)")
-custom_parts_qty = st.number_input("Number of Custom Parts ($4 each)", min_value=0, step=1)
+custom_parts_qty = st.number_input("Number of Custom Parts per Figure ($4 each)", min_value=0, step=1)
 part_sourcing = st.checkbox("MiniKreators will handle Part Sourcing ($25)")
 discount_addons = st.checkbox("Apply 10% discount on all add-ons (Pro/Premium only)", value=(package_tier != "Starter Package"), disabled=True)
 
