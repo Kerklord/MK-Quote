@@ -29,6 +29,7 @@ def calculate_quote(qty, design_paid, packaging_design_paid, branding_paid,
         discount_rate = 0.02
     else:
         discount_rate = 0
+    # Package-specific figure discounts
     if package_tier == "Premium Package":
         discount_rate = 0.10
     if package_tier == "Enterprise Package":
@@ -61,10 +62,17 @@ def calculate_quote(qty, design_paid, packaging_design_paid, branding_paid,
     dom_fee = domain_count * 85 if landing_page else 0
 
     # Apply add-on discounts
-    for var_name in ["comm_rights", "packaging_design_fee", "branding_fee", "ad_fee", "sourcing_fee", 
-                     "custom_parts_fee", "pack_prod_cost", "keychain_cost", "lp_fee", "dom_fee"]:
-        val = locals()[var_name]
-        locals()[var_name] = val * (1 - add_on_discount) if add_on_discount > 0 else val
+    if add_on_discount > 0:
+        comm_rights *= (1 - add_on_discount)
+        packaging_design_fee *= (1 - add_on_discount)
+        branding_fee *= (1 - add_on_discount)
+        ad_fee *= (1 - add_on_discount)
+        sourcing_fee *= (1 - add_on_discount)
+        custom_parts_fee *= (1 - add_on_discount)
+        pack_prod_cost *= (1 - add_on_discount)
+        keychain_cost *= (1 - add_on_discount)
+        lp_fee *= (1 - add_on_discount)
+        dom_fee *= (1 - add_on_discount)
 
     # Shipping estimate
     weight = (12 if keychain else 15) * qty + 50 + (0 if keychain else 3 * qty)
@@ -125,7 +133,8 @@ def calculate_quote(qty, design_paid, packaging_design_paid, branding_paid,
     ]
     if with_profit:
         summary.append(f"- **Profit: ${profit:.2f}**")
-    return final, profit, "\n".join(summary)
+    return final, profit, "
+".join(summary)
 
 # Streamlit App UI
 st.set_page_config(page_title="Create-a-Kreator Quote Calculator", layout="centered")
@@ -154,8 +163,8 @@ elif package_tier == "Enterprise Package":
 # Add-ons
 st.subheader("Add-ons")
 com_disabled = package_tier in ["Pro Package", "Premium Package", "Enterprise Package"]
-pack_disabled = package_tier in ["Premium Package"] or packaging_design_paid
-landing_disabled = package_tier == "Enterprise Package"
+pack_disabled = (package_tier == "Premium Package") or packaging_design_paid
+landing_disabled = (package_tier == "Enterprise Package")
 
 commercial = st.checkbox("Commercial Rights ($25)", disabled=com_disabled)
 packaging = st.checkbox("Custom Packaging ($100)", disabled=pack_disabled)
@@ -167,7 +176,10 @@ landing_page = st.checkbox("Custom Landing Page ($350)", disabled=landing_disabl
 if package_tier == "Enterprise Package":
     landing_page = True
 
-domain_count = st.number_input("Custom Domains ($85 each)", min_value=0)
+# Domain count
+domain_count = 0
+if landing_page:
+    domain_count = st.number_input("Custom Domains ($85 each)", min_value=0)
 
 # Actions
 col1, col2, col3 = st.columns(3)
@@ -197,3 +209,20 @@ if st.session_state["show_gp"]:
                                      commercial, packaging, keychain, custom_parts_qty,
                                      part_sourcing, landing_page, domain_count,
                                      package_tier, with_profit=True)
+        st.markdown(text)
+        st.markdown("⚠️ Disclaimer: Estimate only. For accurate quote, visit https://shopqzr.com/create-a-kreator")
+        st.session_state["show_gp"] = False
+    elif pw == "5051":
+        new_base = st.number_input("New Service Charge Base", value=st.session_state.service_base)
+        if st.button("Update Service Charge"):
+            st.session_state.service_base = new_base
+            st.success(f"Service base updated to ${new_base}")
+            st.session_state["show_gp"] = False
+    elif pw:
+        st.error("Incorrect password")
+
+# Footer
+st.markdown(
+    "---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>",
+    unsafe_allow_html=True
+)
