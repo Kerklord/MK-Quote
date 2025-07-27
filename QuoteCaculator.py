@@ -62,8 +62,10 @@ def calculate_quote(
     if packaging or package_tier in ["Premium Package", "Enterprise Package"]:
         packaging_cost = 2 * qty if keychain else 4.50 * qty
     keychain_cost = 3 * qty if keychain else 0
-    landing_page_fee = 350 if (landing_page or package_tier in ["Premium Package", "Enterprise Package"]) else 0
-    domain_fee = domain_count * 85 if (landing_page or package_tier in ["Premium Package", "Enterprise Package"]) else 0
+
+    # Landing page & domain fees (Premium no longer includes landing page)
+    landing_page_fee = 350 if landing_page else 0
+    domain_fee = domain_count * 85 if landing_page else 0
 
     # Apply add-on discounts
     if add_on_discount > 0:
@@ -121,7 +123,7 @@ def calculate_quote(
         title,
         f"- Package Selected: {package_tier}",
         f"- Quantity: {qty} MiniKreators",
-        f"- Discount on figures: {discount_rate*100:.0f}%",
+        f"- Discount on figures: {discount_rate*100:.0f}%,",
         f"- Figures Total (with margin): ${figures_total:.2f}",
         f"- Price per Figure: ${price_per_figure:.2f}",
         f"- Character Design Fee: ${character_design:.2f}",
@@ -163,14 +165,14 @@ if package_tier == "Starter Package":
 elif package_tier == "Pro Package":
     st.markdown("**Includes:** Starter + Priority Review + 10% off add-ons + Commercial Rights + Part Sourcing")
 elif package_tier == "Premium Package":
-    st.markdown("**Includes:** Pro + Custom Packaging + 2D/3D Ad + Landing Page + 10% off add-ons")
+    st.markdown("**Includes:** Pro + Custom Packaging + 2D/3D Ad + 10% off add-ons")
 elif package_tier == "Enterprise Package":
     st.markdown("**Includes:** Premium + Remove Branding + Part Sourcing + 15% off add-ons")
 
 st.subheader("Optional Add-ons")
 commercial_disabled = package_tier in ["Pro Package", "Premium Package", "Enterprise Package"]
 packaging_disabled = package_tier in ["Premium Package", "Enterprise Package"] or packaging_design_paid
-landing_disabled = package_tier == "Enterprise Package"
+landing_disabled = package_tier in ["Premium Package", "Enterprise Package"]
 
 commercial = st.checkbox("Add Commercial Rights ($25)", disabled=commercial_disabled)
 packaging = st.checkbox("Add Custom Packaging ($100)", disabled=packaging_disabled)
@@ -196,35 +198,3 @@ with col3:
 
 if show_quote:
     final_total, profit_amount, quote = calculate_quote(
-        qty, design_paid, packaging_design_paid, branding_paid,
-        commercial, packaging, keychain, custom_parts_qty,
-        part_sourcing, landing_page, domain_count,
-        package_tier, with_profit=False
-    )
-    st.markdown(quote)
-    st.markdown("⚠️ **Disclaimer:** Not 100% accurate. For precise quote, visit https://shopqzr.com/create-a-kreator")
-
-if show_gp:
-    st.session_state["show_gp"] = True
-if st.session_state["show_gp"]:
-    pw = st.text_input("Enter password:", type="password")
-    if pw == "5150":
-        _, _, quote = calculate_quote(
-            qty, design_paid, packaging_design_paid, branding_paid,
-            commercial, packaging, keychain, custom_parts_qty,
-            part_sourcing, landing_page, domain_count,
-            package_tier, with_profit=True
-        )
-        st.markdown(quote)
-        st.markdown("⚠️ **Disclaimer:** Not 100% accurate. For precise quote, visit https://shopqzr.com/create-a-kreator")
-        st.session_state["show_gp"] = False
-    elif pw == "5051":
-        new_val = st.number_input("New Service Charge Base:", value=st.session_state.service_base)
-        if st.button("Update Service Charge"):
-            st.session_state.service_base = new_val
-            st.success(f"Service base updated to ${new_val}")
-            st.session_state["show_gp"] = False
-    elif pw:
-        st.error("Incorrect password.")
-
-st.markdown("\n---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>", unsafe_allow_html=True)
