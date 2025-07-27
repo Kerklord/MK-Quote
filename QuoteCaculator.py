@@ -74,8 +74,10 @@ def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_
     shipping_cost = estimate_shipping(total_weight)
 
     final_quote = total_with_margin + character_design + commercial_rights + packaging_cost + keychain_cost + ad_package + shipping_cost
+    total_cost = base_cost + character_design + commercial_rights + packaging_cost + keychain_cost + ad_package + shipping_cost
+    profit = final_quote - total_cost
 
-    return (f"### Quote Summary\n"
+    return final_quote, profit, (f"### Quote Summary\n"
             f"- Package Selected: {package_tier}\n"
             f"- Quantity: {qty} MiniKreators\n"
             f"- Discount on figures: {discount_rate*100:.0f}%\n"
@@ -115,12 +117,24 @@ packaging = st.checkbox("Add Custom Packaging ($100 per design)", disabled=packa
 keychain = st.checkbox("Convert to Keychains ($3 per figure)")
 discount_addons = st.checkbox("Apply 10% discount on all add-ons (Pro/Premium only)", value=(package_tier != "Starter Package"), disabled=True)
 
-col1, col2 = st.columns([1, 1])
+col1, col2, col3 = st.columns([1, 1, 1])
 with col1:
-    if st.button("Calculate Quote"):
-        quote = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
-        st.markdown(quote)
+    show_quote = st.button("Calculate Quote")
 with col2:
     st.link_button("Return to MiniKreators", "https://minikreators.com")
+with col3:
+    show_profit = st.button("Profit")
+
+if show_quote:
+    final_total, profit_amount, quote = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
+    st.markdown(quote)
+
+if show_profit:
+    pw = st.text_input("Enter password to view profit:", type="password")
+    if pw == "5150":
+        final_total, profit_amount, _ = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
+        st.success(f"Estimated Profit: ${profit_amount:.2f}")
+    elif pw:
+        st.error("Incorrect password.")
 
 st.markdown("\n---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>", unsafe_allow_html=True)
