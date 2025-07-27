@@ -167,7 +167,7 @@ landing_page = st.checkbox("Custom Landing Page ($350)", disabled=landing_disabl
 if package_tier == "Enterprise Package":
     landing_page = True
 
-domain_count = st.number_input("Custom Domains ($85 ea)", min_value=0)
+domain_count = st.number_input("Custom Domains ($85 each)", min_value=0)
 
 # Actions
 col1, col2, col3 = st.columns(3)
