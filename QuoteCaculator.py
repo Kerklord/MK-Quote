@@ -48,6 +48,10 @@ def calculate_quote(
     base_cost *= (1 - discount_rate)
     total_with_margin = base_cost * 1.15
 
+    # Compute figures summary values
+    figures_total = total_with_margin
+    price_per_figure = total_with_margin / qty if qty else 0
+
     # Initialize add-on discount factor
     add_on_discount = 0.0
     if package_tier == "Pro Package":
@@ -117,7 +121,7 @@ def calculate_quote(
 
     # Final quote and profit
     final_quote = (
-        total_with_margin + character_design + commercial_rights + packaging_design_fee +
+        figures_total + character_design + commercial_rights + packaging_design_fee +
         branding_removal_fee + ad_package + part_sourcing_fee + custom_parts_cost +
         packaging_cost + keychain_cost + landing_page_fee + domain_fee + shipping_cost + service_charge
     )
@@ -131,6 +135,8 @@ def calculate_quote(
         f"- Package Selected: {package_tier}\n"
         f"- Quantity: {qty} MiniKreators\n"
         f"- Discount on figures: {discount_rate*100:.0f}%\n"
+        f"- Figures Total (with margin): ${figures_total:.2f}\n"
+        f"- Price per Figure: ${price_per_figure:.2f}\n"
         f"- Character Design Fee: ${character_design:.2f}\n"
         f"- Commercial Rights: ${commercial_rights:.2f}\n"
         f"- Custom Packaging Design Fee: ${packaging_design_fee:.2f}\n"
@@ -206,59 +212,3 @@ else:
     domain_count = 0
 
 col1, col2, col3 = st.columns([1, 1, 1])
-with col1:
-    show_quote = st.button("Calculate Quote")
-with col2:
-    st.link_button("Return to MiniKreators", "https://minikreators.com")
-with col3:
-    show_gp_prompt = st.button("GP-Cal")
-
-if show_quote:
-    final_total, profit_amount, quote = calculate_quote(
-        qty, design_paid, packaging_design_paid, branding_paid,
-        commercial, packaging, keychain, custom_parts_qty,
-        part_sourcing, landing_page, domain_count,
-        package_tier, with_profit=False
-    )
-    st.markdown(quote)
-    st.markdown(
-        "⚠️ **Disclaimer:** This quote is not 100% accurate as it is an estimate. "
-        "For a more accurate quote please go to https://shopqzr.com/create-a-kreator"
-    )
-
-if show_gp_prompt:
-    st.session_state["show_gp"] = True
-if st.session_state.get("show_gp"):
-    pw = st.text_input("Enter password:", type="password", key="gp_pw")
-    if pw == "5150":
-        final_total, profit_amount, quote = calculate_quote(
-            qty, design_paid, packaging_design_paid, branding_paid,
-            commercial, packaging, keychain, custom_parts_qty,
-            part_sourcing, landing_page, domain_count,
-            package_tier, with_profit=True
-        )
-        st.markdown(quote)
-        st.markdown(
-            "⚠️ **Disclaimer:** This quote is not 100% accurate as it is an estimate. "
-            "For a more accurate quote please go to https://shopqzr.com/create-a-kreator"
-        )
-        st.session_state["show_gp"] = False
-    elif pw == "5051":
-        new_service_charge = st.number_input(
-            "Enter new Service Charge base value:",
-            min_value=0,
-            value=st.session_state.service_base,
-            step=1,
-            key="sc_input"
-        )
-        if st.button("Update Service Charge"):
-            st.session_state.service_base = new_service_charge
-            st.success(f"Service charge base updated to ${new_service_charge:.2f}")
-            st.session_state["show_gp"] = False
-    elif pw:
-        st.error("Incorrect password.")
-
-st.markdown(
-    "\n---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>",
-    unsafe_allow_html=True
-)
