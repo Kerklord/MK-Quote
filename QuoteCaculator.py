@@ -133,8 +133,7 @@ def calculate_quote(qty, design_paid, packaging_design_paid, branding_paid,
     ]
     if with_profit:
         summary.append(f"- **Profit: ${profit:.2f}**")
-    return final, profit, "
-".join(summary)
+    return final, profit, "\n".join(summary)
 
 # Streamlit App UI
 st.set_page_config(page_title="Create-a-Kreator Quote Calculator", layout="centered")
@@ -176,7 +175,6 @@ landing_page = st.checkbox("Custom Landing Page ($350)", disabled=landing_disabl
 if package_tier == "Enterprise Package":
     landing_page = True
 
-# Domain count
 domain_count = 0
 if landing_page:
     domain_count = st.number_input("Custom Domains ($85 each)", min_value=0)
