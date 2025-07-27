@@ -27,25 +27,26 @@ def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_
 
     # Add-ons from selections or package
     character_design = 0 if design_paid else 85
-    commercial_rights = 25 if commercial else 0
-    packaging_cost = 100 if packaging else 0
-    keychain_cost = 3 * qty if keychain else 0
+    commercial_rights = 0
+    packaging_cost = 0
+    keychain_cost = 0
+    ad_package = 0
 
     if package_tier == "Pro Package":
-        commercial_rights *= 0.9
-        packaging_cost *= 0.9
-        keychain_cost *= 0.9
+        commercial_rights = 25 * 0.9
+        packaging_cost = 25 * 0.9 if packaging else 0
+        keychain_cost = 3 * qty * 0.9 if keychain else 0
         discount_addons = True
     elif package_tier == "Premium Package":
-        commercial_rights *= 0.9
-        packaging_cost *= 0.9
-        keychain_cost *= 0.9
-        discount_addons = True
-
-    # Premium includes ad package at 10% off
-    ad_package = 0
-    if package_tier == "Premium Package":
+        commercial_rights = 25 * 0.9
+        packaging_cost = 100 * 0.9
+        keychain_cost = 3 * qty * 0.9 if keychain else 0
         ad_package = 500 * 0.9
+        discount_addons = True
+    else:  # Starter
+        commercial_rights = 25 if commercial else 0
+        packaging_cost = 100 if packaging else 0
+        keychain_cost = 3 * qty if keychain else 0
 
     # Shipping weight estimate (in grams)
     base_weight = 15 * qty
@@ -98,12 +99,24 @@ shipping_address = st.text_input("Shipping Address:")
 st.subheader("Select Package")
 package_tier = st.selectbox("Choose a Package:", ["Starter Package", "Pro Package", "Premium Package"])
 
+if package_tier == "Starter Package":
+    st.markdown("**Includes:** 25 MiniKreators + Character Design")
+elif package_tier == "Pro Package":
+    st.markdown("**Includes:** Starter Package + Priority Review + 10% off Add-ons + Commercial Rights")
+elif package_tier == "Premium Package":
+    st.markdown("**Includes:** Pro Package + Custom Packaging + 2D/3D Ad Package (10% off) + Social Media Showcase")
+
 st.subheader("Optional Add-ons")
-commercial = st.checkbox("Add Commercial Rights ($25 per design)")
-packaging = st.checkbox("Add Custom Packaging ($100 per design)")
+commercial_disabled = package_tier in ["Pro Package", "Premium Package"]
+packaging_disabled = package_tier == "Premium Package"
+
+commercial = st.checkbox("Add Commercial Rights ($25 per design)", disabled=commercial_disabled)
+packaging = st.checkbox("Add Custom Packaging ($100 per design)", disabled=packaging_disabled)
 keychain = st.checkbox("Convert to Keychains ($3 per figure)")
-discount_addons = st.checkbox("Apply 10% discount on all add-ons (Pro/Premium only)")
+discount_addons = st.checkbox("Apply 10% discount on all add-ons (Pro/Premium only)", value=(package_tier != "Starter Package"), disabled=True)
 
 if st.button("Calculate Quote"):
     quote = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
     st.markdown(quote)
+
+st.markdown("\n---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>", unsafe_allow_html=True)
