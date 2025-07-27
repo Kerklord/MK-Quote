@@ -106,7 +106,7 @@ def calculate_quote(qty, design_paid, packaging_design_paid, branding_paid,
         title,
         f"- Package: {package_tier}",
         f"- Quantity: {qty}",
-        f"- Figure Discount: {discount_rate*100:.0f}%",
+        f"- Figure Discount: {discount_rate*100:.0f}%",        
         f"- Figures Total: ${figures_total:.2f} (Unit: ${unit_price:.2f})",
         f"- Character Design: ${char_design_fee:.2f}",
         f"- Commercial Rights: ${comm_rights:.2f}",
@@ -149,13 +149,13 @@ elif package_tier == "Pro Package":
 elif package_tier == "Premium Package":
     st.markdown("Includes: Pro + Custom Packaging + 2D/3D Ad + 10% off add-ons")
 elif package_tier == "Enterprise Package":
-    st.markdown("Includes: Premium + Remove Branding + Part Sourcing + 15% off add-ons");
+    st.markdown("Includes: Premium + Remove Branding + Part Sourcing + 15% off add-ons")
 
 # Add-ons
 st.subheader("Add-ons")
 com_disabled = package_tier in ["Pro Package", "Premium Package", "Enterprise Package"]
 pack_disabled = package_tier in ["Premium Package"] or packaging_design_paid
-landing_disabled = package_tier == "Premium Package"
+landing_disabled = package_tier == "Enterprise Package"
 
 commercial = st.checkbox("Commercial Rights ($25)", disabled=com_disabled)
 packaging = st.checkbox("Custom Packaging ($100)", disabled=pack_disabled)
@@ -197,17 +197,3 @@ if st.session_state["show_gp"]:
                                      commercial, packaging, keychain, custom_parts_qty,
                                      part_sourcing, landing_page, domain_count,
                                      package_tier, with_profit=True)
-        st.markdown(text)
-        st.markdown("⚠️ Disclaimer: Estimate only. For accurate quote, visit https://shopqzr.com/create-a-kreator")
-        st.session_state["show_gp"] = False
-    elif pw == "5051":
-        new_svc = st.number_input("Service Charge Base", value=st.session_state.service_base)
-        if st.button("Update Service Charge"):
-            st.session_state.service_base = new_svc
-            st.success(f"Service charge base: ${new_svc}")
-            st.session_state["show_gp"] = False
-    elif pw:
-        st.error("Incorrect password")
-
-# Footer
-st.markdown("---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>", unsafe_allow_html=True)
