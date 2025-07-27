@@ -35,6 +35,7 @@ def calculate_quote(qty, design_paid, packaging_design_paid, branding_paid, comm
     part_sourcing_fee = 25 if part_sourcing else 0
     custom_parts_cost = custom_parts_qty * qty * 4
     custom_parts_profit = custom_parts_cost * 0.5
+    branding_removal_profit = 85 if not branding_paid else 0
 
     if package_tier == "Pro Package":
         commercial_rights = 25 * 0.9
@@ -85,7 +86,7 @@ def calculate_quote(qty, design_paid, packaging_design_paid, branding_paid, comm
 
     final_quote = total_with_margin + character_design + commercial_rights + packaging_design_fee + branding_removal_fee + packaging_cost + keychain_cost + ad_package + part_sourcing_fee + custom_parts_cost + shipping_cost
     total_cost = base_cost + packaging_cost + shipping_cost + (custom_parts_cost * 0.5)
-    profit = final_quote - total_cost
+    profit = final_quote - total_cost + branding_removal_profit
 
     title = "### Quote Summary with Profit" if with_profit else "### Quote Summary"
     quote_summary = (f"{title}\n"
