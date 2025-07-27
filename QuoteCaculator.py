@@ -33,8 +33,8 @@ def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packagi
     keychain_cost = 0
     ad_package = 0
     part_sourcing_fee = 25 if part_sourcing else 0
-    custom_parts_cost = custom_parts_qty * 4
-    custom_parts_profit = custom_parts_cost * 0.5
+    custom_parts_cost = custom_parts_qty * qty * 4
+    custom_parts_profit = custom_parts_qty * qty * 4 * 0.5
 
     if package_tier == "Pro Package":
         commercial_rights = 25 * 0.9
