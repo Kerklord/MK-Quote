@@ -121,6 +121,6 @@ with col1:
         quote = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
         st.markdown(quote)
 with col2:
-    st.link_button("Return to MiniKreators", "https://minikretors.com")
+    st.link_button("Return to MiniKreators", "https://minikreators.com")
 
 st.markdown("\n---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>", unsafe_allow_html=True)
