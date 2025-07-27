@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 
 def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons):
     if qty < 25:
@@ -36,7 +37,32 @@ def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_
         packaging_cost *= 0.9
         keychain_cost *= 0.9
 
-    final_quote = total_with_margin + character_design + commercial_rights + packaging_cost + keychain_cost
+    # Shipping weight estimate (in grams)
+    base_weight = 15 * qty
+    if keychain:
+        base_weight = 12 * qty  # if keychains only
+    else:
+        base_weight += 3 * qty  # no packaging weight
+    box_weight = 50  # base box weight
+    total_weight = base_weight + box_weight
+
+    def estimate_shipping(weight):
+        if weight <= 100:
+            return 12.00
+        elif weight <= 250:
+            return 14.50
+        elif weight <= 500:
+            return 18.00
+        elif weight <= 1000:
+            return 22.00
+        elif weight <= 1500:
+            return 26.00
+        else:
+            return 30.00
+
+    shipping_cost = estimate_shipping(total_weight)
+
+    final_quote = total_with_margin + character_design + commercial_rights + packaging_cost + keychain_cost + shipping_cost
 
     return (f"### Quote Summary\n"
             f"- Quantity: {qty} MiniKreators\n"
@@ -45,11 +71,12 @@ def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_
             f"- Commercial Rights: ${commercial_rights:.2f}\n"
             f"- Custom Packaging: ${packaging_cost:.2f}\n"
             f"- Keychains: ${keychain_cost:.2f}\n"
-            f"- **Total (before shipping): ${final_quote:.2f}**\n"
-            f"- Shipping is calculated based on your address.")
+            f"- Estimated Shipping (Canada Post w/ tracking): ${shipping_cost:.2f}\n"
+            f"- **Total: ${final_quote:.2f}**")
 
 # Streamlit UI
 st.set_page_config(page_title="MiniKreators Quote Calculator", layout="centered")
+st.image("creatorslogo-v2-W.png", width=200)
 st.title("MiniKreators Quote Calculator")
 
 qty = st.number_input("Quantity of MiniKreators (min 25):", min_value=25, step=1)
