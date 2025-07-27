@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 
-def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, package_tier):
+def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, package_tier, with_profit=True):
     if qty < 25:
         return 0, 0, "❌ Minimum order quantity is 25."
 
@@ -25,7 +25,6 @@ def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packagi
     base_cost *= (1 - discount_rate)
     total_with_margin = base_cost * 1.15  # 15% markup
 
-    # Add-ons from selections or package
     character_design = 0 if design_paid else 85
     commercial_rights = 0
     packaging_design_fee = 0 if packaging_design_paid else 100 if packaging else 0
@@ -34,7 +33,7 @@ def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packagi
     ad_package = 0
     part_sourcing_fee = 25 if part_sourcing else 0
     custom_parts_cost = custom_parts_qty * qty * 4
-    custom_parts_profit = custom_parts_qty * qty * 4 * 0.5
+    custom_parts_profit = custom_parts_cost * 0.5
 
     if package_tier == "Pro Package":
         commercial_rights = 25 * 0.9
@@ -54,20 +53,18 @@ def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packagi
         else:
             per_package_cost = 4.50
             if qty > 75:
-                per_package_cost *= 0.97  # 3% discount
+                per_package_cost *= 0.97
             packaging_cost = per_package_cost * qty
 
     if keychain:
         keychain_cost = 3 * qty
 
-    # Shipping weight estimate (in grams)
     base_weight = 15 * qty
     if keychain:
         base_weight = 12 * qty
     else:
         base_weight += 3 * qty
-    box_weight = 50
-    total_weight = base_weight + box_weight
+    total_weight = base_weight + 50
 
     def estimate_shipping(weight):
         if weight <= 100:
@@ -86,12 +83,11 @@ def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packagi
     shipping_cost = estimate_shipping(total_weight)
 
     final_quote = total_with_margin + character_design + commercial_rights + packaging_design_fee + packaging_cost + keychain_cost + ad_package + part_sourcing_fee + custom_parts_cost + shipping_cost
-
-    # Profit includes design, commercial rights, ad package, packaging, part sourcing, and 50% of custom parts
     total_cost = base_cost + packaging_cost + shipping_cost + (custom_parts_cost * 0.5)
     profit = final_quote - total_cost
 
-    quote_summary = (f"### Quote Summary with Profit\n"
+    title = "### Quote Summary with Profit" if with_profit else "### Quote Summary"
+    quote_summary = (f"{title}\n"
                      f"- Package Selected: {package_tier}\n"
                      f"- Quantity: {qty} MiniKreators\n"
                      f"- Discount on figures: {discount_rate*100:.0f}%\n"
@@ -104,12 +100,13 @@ def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packagi
                      f"- Ad Package (Premium only): ${ad_package:.2f}\n"
                      f"- Part Sourcing: ${part_sourcing_fee:.2f}\n"
                      f"- Estimated Shipping: ${shipping_cost:.2f}\n"
-                     f"- **Total: ${final_quote:.2f}**\n"
-                     f"- **Estimated Profit: ${profit:.2f}**")
+                     f"- **Total: ${final_quote:.2f}**")
+
+    if with_profit:
+        quote_summary += f"\n- **Estimated Profit: ${profit:.2f}**"
 
     return final_quote, profit, quote_summary
 
-# Streamlit UI
 st.set_page_config(page_title="MiniKreators Quote Calculator", layout="centered")
 st.image("creatorslogo-v2-W.png", width=200)
 st.title("MiniKreators Quote Calculator")
@@ -149,9 +146,8 @@ with col3:
     show_gp_prompt = st.button("GP-Cal")
 
 if show_quote:
-    final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, package_tier)
-    quote_lines = quote.split("\n")[:-1]  # remove the profit line
-    st.markdown("\n".join(quote_lines))
+    final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, package_tier, with_profit=False)
+    st.markdown(quote)
 
 if show_gp_prompt:
     st.session_state["show_gp"] = True
@@ -160,7 +156,7 @@ if st.session_state.get("show_gp"):
     pw = st.text_input("Enter password to view GP-Cal results:", type="password", key="gp_pw")
     if pw and st.button("Submit Password"):
         if pw == "5150":
-            final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, package_tier)
+            final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, package_tier, with_profit=True)
             st.markdown(quote)
             st.session_state["show_gp"] = False
         else:
