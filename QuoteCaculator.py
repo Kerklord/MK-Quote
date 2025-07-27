@@ -91,7 +91,7 @@ def calculate_quote(qty, design_paid, packaging_design_paid, commercial, packagi
     total_cost = base_cost + packaging_cost + shipping_cost + (custom_parts_cost * 0.5)
     profit = final_quote - total_cost
 
-    quote_summary = (f"### Quote Summary\n"
+    quote_summary = (f"### Quote Summary with Profit\n"
                      f"- Package Selected: {package_tier}\n"
                      f"- Quantity: {qty} MiniKreators\n"
                      f"- Discount on figures: {discount_rate*100:.0f}%\n"
