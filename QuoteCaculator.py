@@ -89,7 +89,7 @@ def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_
 
 # Streamlit UI
 st.set_page_config(page_title="MiniKreators Quote Calculator", layout="centered")
-st.image("creatorslogo-v2-W.png", width=200)
+st.markdown("<div style='text-align: center'><img src='creatorslogo-v2-W.png' width='200'></div>", unsafe_allow_html=True)
 st.title("MiniKreators Quote Calculator")
 
 qty = st.number_input("Quantity of MiniKreators (min 25):", min_value=25, step=1)
@@ -100,7 +100,7 @@ st.subheader("Select Package")
 package_tier = st.selectbox("Choose a Package:", ["Starter Package", "Pro Package", "Premium Package"])
 
 if package_tier == "Starter Package":
-    st.markdown("**Includes:** 25 MiniKreators + Character Design")
+    st.markdown("**Includes:** 25 MiniKreators + Character Design (1 revision included, +$50 per additional revision)")
 elif package_tier == "Pro Package":
     st.markdown("**Includes:** Starter Package + Priority Review + 10% off Add-ons + Commercial Rights")
 elif package_tier == "Premium Package":
@@ -118,5 +118,10 @@ discount_addons = st.checkbox("Apply 10% discount on all add-ons (Pro/Premium on
 if st.button("Calculate Quote"):
     quote = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
     st.markdown(quote)
+
+st.markdown("\n---")
+col1, col2, col3 = st.columns([1, 1, 1])
+with col2:
+    st.link_button("Return to MiniKreators", "https://minikretors.com")
 
 st.markdown("\n---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>", unsafe_allow_html=True)
