@@ -201,23 +201,19 @@ if show_gp_prompt:
     st.session_state["show_gp"] = True
 
 if st.session_state.get("show_gp"):
-    with st.form("gp_pw_form"):
-        pw = st.text_input("Enter password:", type="password")
-        submitted = st.form_submit_button("Submit Password")
-
-        if submitted:
-            if pw == "5150":
-                final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, branding_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, landing_page, domain_count, package_tier, with_profit=True)
-                st.markdown(quote)
-                st.session_state["show_gp"] = False
-            elif pw == "5051":
-                new_service_charge = st.number_input("Enter new Service Charge base value:", min_value=0, value=st.session_state.service_base, step=1)
-                if st.form_submit_button("Update Service Charge"):
-                    st.session_state.service_base = new_service_charge
-                    st.success(f"Service charge base updated to ${new_service_charge:.2f}")
-                    st.session_state["show_gp"] = False
-            else:
-                st.error("Incorrect password.")
-                st.session_state["show_gp"] = False
+    pw = st.text_input("Enter password:", type="password", key="gp_pw")
+    if pw == "5150":
+        final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, branding_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, landing_page, domain_count, package_tier, with_profit=True)
+        st.markdown(quote)
+        st.session_state["show_gp"] = False
+    elif pw == "5051":
+        new_service_charge = st.number_input("Enter new Service Charge base value:", min_value=0, value=st.session_state.service_base, step=1, key="sc_input")
+        if st.button("Update Service Charge"):
+            st.session_state.service_base = new_service_charge
+            st.success(f"Service charge base updated to ${new_service_charge:.2f}")
+            st.session_state["show_gp"] = False
+    elif pw:
+        st.error("Incorrect password.")
+        st.session_state["show_gp"] = False
 
 st.markdown("\n---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>", unsafe_allow_html=True)
