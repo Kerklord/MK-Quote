@@ -155,10 +155,11 @@ if show_quote:
 
 if show_gp_prompt:
     pw = st.text_input("Enter password to view GP-Cal results:", type="password", key="gp_pw", placeholder="Enter password and press Enter")
-    if pw == "5150":
+    submit_pw = st.button("Submit Password")
+    if submit_pw and pw == "5150":
         final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, package_tier)
         st.markdown(quote)
-    elif pw:
+    elif submit_pw and pw:
         st.error("Incorrect password.")
 
 st.markdown("\n---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>", unsafe_allow_html=True)
