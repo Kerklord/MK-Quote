@@ -67,7 +67,6 @@ def calculate_quote(qty, design_paid, packaging_design_paid, branding_paid, comm
         landing_page_fee = 350
         part_sourcing_fee = 25
         discount_addons = True
-        discount_rate += 0.15  # Enterprise Pack has 15% off all addons featured
     else:
         commercial_rights = 25 if commercial else 0
         ad_package = 0
@@ -107,12 +106,9 @@ def calculate_quote(qty, design_paid, packaging_design_paid, branding_paid, comm
 
     shipping_cost = estimate_shipping(total_weight)
 
-    # Service charge: base for 25+, increase 15% at 75+
     service_charge = 0
-    if qty >= 25:
+    if qty > 50:
         service_charge = st.session_state.service_base
-        if qty >= 75:
-            service_charge *= 1.15
         if packaging:
             service_charge *= 1.05
         if landing_page:
@@ -148,3 +144,76 @@ def calculate_quote(qty, design_paid, packaging_design_paid, branding_paid, comm
         quote_summary += f"\n- **Estimated Profit: ${profit:.2f}**"
 
     return final_quote, profit, quote_summary
+
+st.set_page_config(page_title="Create-a-Kreator Quote Calculator", layout="centered")
+st.image("creatorslogo-v2-W.png", width=200)
+st.title("Create-a-Kreator Quote Calculator")
+
+qty = st.number_input("Quantity of MiniKreators (min 25):", min_value=25, step=1)
+design_paid = st.checkbox("Character design already paid (for reorders)")
+packaging_design_paid = st.checkbox("Packaging design already paid (for reorders)")
+branding_paid = st.checkbox("Branding removal already paid (for reorders)")
+shipping_address = st.text_input("Shipping Address:")
+
+st.subheader("Select Package")
+package_tier = st.selectbox("Choose a Package:", ["Starter Package", "Pro Package", "Premium Package", "Enterprise Package"])
+
+if package_tier == "Starter Package":
+    st.markdown("**Includes:** 25 MiniKreators + Character Design (1 revision included, +$50 per additional revision)")
+elif package_tier == "Pro Package":
+    st.markdown("**Includes:** Starter Package + Priority Review + 10% off Add-ons + Commercial Rights + We Handle Part Sourcing")
+elif package_tier == "Premium Package":
+    st.markdown("**Includes:** Pro Package + Custom Packaging + 2D/3D Ad Package (10% off) + Social Media Showcase + Custom Landing Page")
+elif package_tier == "Enterprise Package":
+    st.markdown("**Includes:** Everything from Premium Package + Remove Branding + Custom Landing Page + We Handle Part Sourcing — 50% off all add-ons featured in this package")
+
+st.subheader("Optional Add-ons")
+commercial_disabled = package_tier in ["Pro Package", "Premium Package", "Enterprise Package"]
+packaging_disabled = package_tier in ["Premium Package", "Enterprise Package"] or packaging_design_paid
+
+commercial = st.checkbox("Add Commercial Rights ($25 per design)", disabled=commercial_disabled)
+packaging = st.checkbox("Add Custom Packaging ($100 per design)", disabled=packaging_disabled)
+branding_removal = False
+if packaging:
+    branding_removal = st.checkbox("Remove MiniKreator Branding ($85)", disabled=branding_paid)
+keychain = st.checkbox("Convert to Keychains ($3 per figure)")
+custom_parts_qty = st.number_input("Number of Custom Parts per Figure ($4 each)", min_value=0, step=1)
+part_sourcing = st.checkbox("MiniKreators will handle Part Sourcing ($25)")
+landing_page = st.checkbox("Custom Landing Page (shopqzr.com/minikreators/yourname) ($350)")
+domain_count = 0
+if landing_page:
+    domain_count = st.number_input("Number of Custom Domains ($85 per domain for first year, $55/year after)", min_value=0, step=1)
+discount_addons = st.checkbox("Apply 10% discount on all add-ons (Pro/Premium only)", value=(package_tier != "Starter Package"), disabled=True)
+
+col1, col2, col3 = st.columns([1, 1, 1])
+with col1:
+    show_quote = st.button("Calculate Quote")
+with col2:
+    st.link_button("Return to MiniKreators", "https://minikreators.com")
+with col3:
+    show_gp_prompt = st.button("GP-Cal")
+
+if show_quote:
+    final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, branding_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, landing_page, domain_count, package_tier, with_profit=False)
+    st.markdown(quote)
+
+if show_gp_prompt:
+    st.session_state["show_gp"] = True
+
+if st.session_state.get("show_gp"):
+    pw = st.text_input("Enter password:", type="password", key="gp_pw")
+    if pw == "5150":
+        final_total, profit_amount, quote = calculate_quote(qty, design_paid, packaging_design_paid, branding_paid, commercial, packaging, keychain, custom_parts_qty, discount_addons, part_sourcing, landing_page, domain_count, package_tier, with_profit=True)
+        st.markdown(quote)
+        st.session_state["show_gp"] = False
+    elif pw == "5051":
+        new_service_charge = st.number_input("Enter new Service Charge base value:", min_value=0, value=st.session_state.service_base, step=1, key="sc_input")
+        if st.button("Update Service Charge"):
+            st.session_state.service_base = new_service_charge
+            st.success(f"Service charge base updated to ${new_service_charge:.2f}")
+            st.session_state["show_gp"] = False
+    elif pw:
+        st.error("Incorrect password.")
+        st.session_state["show_gp"] = False
+
+st.markdown("\n---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>", unsafe_allow_html=True)
