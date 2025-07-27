@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 
-def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons):
+def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier):
     if qty < 25:
         return "❌ Minimum order quantity is 25."
 
@@ -25,25 +25,35 @@ def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_
     base_cost *= (1 - discount_rate)
     total_with_margin = base_cost * 1.15  # 15% markup
 
-    # Add-ons
+    # Add-ons from selections or package
     character_design = 0 if design_paid else 85
     commercial_rights = 25 if commercial else 0
     packaging_cost = 100 if packaging else 0
     keychain_cost = 3 * qty if keychain else 0
 
-    # Discounts for add-ons
-    if discount_addons:
+    if package_tier == "Pro Package":
         commercial_rights *= 0.9
         packaging_cost *= 0.9
         keychain_cost *= 0.9
+        discount_addons = True
+    elif package_tier == "Premium Package":
+        commercial_rights *= 0.9
+        packaging_cost *= 0.9
+        keychain_cost *= 0.9
+        discount_addons = True
+
+    # Premium includes ad package at 10% off
+    ad_package = 0
+    if package_tier == "Premium Package":
+        ad_package = 500 * 0.9
 
     # Shipping weight estimate (in grams)
     base_weight = 15 * qty
     if keychain:
-        base_weight = 12 * qty  # if keychains only
+        base_weight = 12 * qty
     else:
-        base_weight += 3 * qty  # no packaging weight
-    box_weight = 50  # base box weight
+        base_weight += 3 * qty
+    box_weight = 50
     total_weight = base_weight + box_weight
 
     def estimate_shipping(weight):
@@ -62,16 +72,18 @@ def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_
 
     shipping_cost = estimate_shipping(total_weight)
 
-    final_quote = total_with_margin + character_design + commercial_rights + packaging_cost + keychain_cost + shipping_cost
+    final_quote = total_with_margin + character_design + commercial_rights + packaging_cost + keychain_cost + ad_package + shipping_cost
 
     return (f"### Quote Summary\n"
+            f"- Package Selected: {package_tier}\n"
             f"- Quantity: {qty} MiniKreators\n"
             f"- Discount on figures: {discount_rate*100:.0f}%\n"
             f"- Character Design Fee: ${character_design:.2f}\n"
             f"- Commercial Rights: ${commercial_rights:.2f}\n"
             f"- Custom Packaging: ${packaging_cost:.2f}\n"
             f"- Keychains: ${keychain_cost:.2f}\n"
-            f"- Estimated Shipping (Canada Post w/ tracking): ${shipping_cost:.2f}\n"
+            f"- Ad Package (Premium only): ${ad_package:.2f}\n"
+            f"- Estimated Shipping: ${shipping_cost:.2f}\n"
             f"- **Total: ${final_quote:.2f}**")
 
 # Streamlit UI
@@ -83,6 +95,9 @@ qty = st.number_input("Quantity of MiniKreators (min 25):", min_value=25, step=1
 design_paid = st.checkbox("Character design already paid (for reorders)")
 shipping_address = st.text_input("Shipping Address:")
 
+st.subheader("Select Package")
+package_tier = st.selectbox("Choose a Package:", ["Starter Package", "Pro Package", "Premium Package"])
+
 st.subheader("Optional Add-ons")
 commercial = st.checkbox("Add Commercial Rights ($25 per design)")
 packaging = st.checkbox("Add Custom Packaging ($100 per design)")
@@ -90,5 +105,5 @@ keychain = st.checkbox("Convert to Keychains ($3 per figure)")
 discount_addons = st.checkbox("Apply 10% discount on all add-ons (Pro/Premium only)")
 
 if st.button("Calculate Quote"):
-    quote = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons)
+    quote = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
     st.markdown(quote)
