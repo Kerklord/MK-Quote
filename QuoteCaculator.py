@@ -3,7 +3,7 @@ import os
 
 def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier):
     if qty < 25:
-        return "❌ Minimum order quantity is 25."
+        return 0, 0, "❌ Minimum order quantity is 25."
 
     # Determine discount rate
     if qty >= 100:
@@ -77,17 +77,20 @@ def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_
     total_cost = base_cost + character_design + commercial_rights + packaging_cost + keychain_cost + ad_package + shipping_cost
     profit = final_quote - total_cost
 
-    return final_quote, profit, (f"### Quote Summary\n"
-            f"- Package Selected: {package_tier}\n"
-            f"- Quantity: {qty} MiniKreators\n"
-            f"- Discount on figures: {discount_rate*100:.0f}%\n"
-            f"- Character Design Fee: ${character_design:.2f}\n"
-            f"- Commercial Rights: ${commercial_rights:.2f}\n"
-            f"- Custom Packaging: ${packaging_cost:.2f}\n"
-            f"- Keychains: ${keychain_cost:.2f}\n"
-            f"- Ad Package (Premium only): ${ad_package:.2f}\n"
-            f"- Estimated Shipping: ${shipping_cost:.2f}\n"
-            f"- **Total: ${final_quote:.2f}**")
+    quote_summary = (f"### Quote Summary\n"
+                     f"- Package Selected: {package_tier}\n"
+                     f"- Quantity: {qty} MiniKreators\n"
+                     f"- Discount on figures: {discount_rate*100:.0f}%\n"
+                     f"- Character Design Fee: ${character_design:.2f}\n"
+                     f"- Commercial Rights: ${commercial_rights:.2f}\n"
+                     f"- Custom Packaging: ${packaging_cost:.2f}\n"
+                     f"- Keychains: ${keychain_cost:.2f}\n"
+                     f"- Ad Package (Premium only): ${ad_package:.2f}\n"
+                     f"- Estimated Shipping: ${shipping_cost:.2f}\n"
+                     f"- **Total: ${final_quote:.2f}**\n"
+                     f"- **Estimated Profit: ${profit:.2f}**")
+
+    return final_quote, profit, quote_summary
 
 # Streamlit UI
 st.set_page_config(page_title="MiniKreators Quote Calculator", layout="centered")
@@ -123,17 +126,17 @@ with col1:
 with col2:
     st.link_button("Return to MiniKreators", "https://minikreators.com")
 with col3:
-    show_profit = st.button("Profit")
+    show_profit = st.button("GP-Cal")
 
 if show_quote:
     final_total, profit_amount, quote = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
     st.markdown(quote)
 
 if show_profit:
-    pw = st.text_input("Enter password to view profit:", type="password")
+    pw = st.text_input("Enter password to view GP-Cal results:", type="password")
     if pw == "5150":
-        final_total, profit_amount, _ = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
-        st.success(f"Estimated Profit: ${profit_amount:.2f}")
+        final_total, profit_amount, quote = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
+        st.markdown(quote)
     elif pw:
         st.error("Incorrect password.")
 
