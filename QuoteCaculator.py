@@ -142,16 +142,14 @@ packaging_disabled = package_tier == "Premium Package" or packaging_design_paid
 
 commercial = st.checkbox("Add Commercial Rights ($25 per design)", disabled=commercial_disabled)
 packaging = st.checkbox("Add Custom Packaging ($100 per design)", disabled=packaging_disabled)
-branding_removal = False
-if packaging:
-    branding_removal = st.checkbox("Remove MiniKreator Branding ($85)", disabled=branding_paid)", disabled=branding_paid)
+branding_removal = st.checkbox("Remove MiniKreator Branding ($85)", disabled=branding_paid)
 keychain = st.checkbox("Convert to Keychains ($3 per figure)")
 custom_parts_qty = st.number_input("Number of Custom Parts per Figure ($4 each)", min_value=0, step=1)
 part_sourcing = st.checkbox("MiniKreators will handle Part Sourcing ($25)")
 landing_page = st.checkbox("Custom Landing Page (shopqzr.com/minikreators/yourname) ($350)")
 domain_count = 0
 if landing_page:
-    domain_count = st.number_input("Number of Custom Domains [$85 per domain (1st year), $55/year after]", min_value=0, step=1)
+    domain_count = st.number_input("Number of Custom Domains ($85 per domain for first year, $55/year after)", min_value=0, step=1)
 discount_addons = st.checkbox("Apply 10% discount on all add-ons (Pro/Premium only)", value=(package_tier != "Starter Package"), disabled=True)
 
 col1, col2, col3 = st.columns([1, 1, 1])
