@@ -28,25 +28,35 @@ def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_
     # Add-ons from selections or package
     character_design = 0 if design_paid else 85
     commercial_rights = 0
+    packaging_design_fee = 0
     packaging_cost = 0
     keychain_cost = 0
     ad_package = 0
 
     if package_tier == "Pro Package":
         commercial_rights = 25 * 0.9
-        packaging_cost = 25 * 0.9 if packaging else 0
-        keychain_cost = 3 * qty * 0.9 if keychain else 0
         discount_addons = True
     elif package_tier == "Premium Package":
         commercial_rights = 25 * 0.9
-        packaging_cost = 100 * 0.9
-        keychain_cost = 3 * qty * 0.9 if keychain else 0
+        packaging_design_fee = 100 * 0.9
         ad_package = 500 * 0.9
         discount_addons = True
-    else:  # Starter
+    else:
         commercial_rights = 25 if commercial else 0
-        packaging_cost = 100 if packaging else 0
-        keychain_cost = 3 * qty if keychain else 0
+        packaging_design_fee = 100 if packaging else 0
+        ad_package = 0
+
+    if packaging or package_tier == "Premium Package":
+        if keychain:
+            packaging_cost = 2 * qty
+        else:
+            per_package_cost = 4.50
+            if qty > 75:
+                per_package_cost *= 0.97  # 3% discount
+            packaging_cost = per_package_cost * qty
+
+    if keychain:
+        keychain_cost = 3 * qty
 
     # Shipping weight estimate (in grams)
     base_weight = 15 * qty
@@ -73,8 +83,10 @@ def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_
 
     shipping_cost = estimate_shipping(total_weight)
 
-    final_quote = total_with_margin + character_design + commercial_rights + packaging_cost + keychain_cost + ad_package + shipping_cost
-    total_cost = base_cost + character_design + commercial_rights + packaging_cost + keychain_cost + ad_package + shipping_cost
+    final_quote = total_with_margin + character_design + commercial_rights + packaging_design_fee + packaging_cost + keychain_cost + ad_package + shipping_cost
+
+    # Profit now includes design, commercial rights, ad package, and packaging costs
+    total_cost = base_cost + packaging_cost + shipping_cost
     profit = final_quote - total_cost
 
     quote_summary = (f"### Quote Summary\n"
@@ -83,7 +95,8 @@ def calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_
                      f"- Discount on figures: {discount_rate*100:.0f}%\n"
                      f"- Character Design Fee: ${character_design:.2f}\n"
                      f"- Commercial Rights: ${commercial_rights:.2f}\n"
-                     f"- Custom Packaging: ${packaging_cost:.2f}\n"
+                     f"- Custom Packaging Design Fee: ${packaging_design_fee:.2f}\n"
+                     f"- Custom Packaging Production: ${packaging_cost:.2f}\n"
                      f"- Keychains: ${keychain_cost:.2f}\n"
                      f"- Ad Package (Premium only): ${ad_package:.2f}\n"
                      f"- Estimated Shipping: ${shipping_cost:.2f}\n"
@@ -126,18 +139,25 @@ with col1:
 with col2:
     st.link_button("Return to MiniKreators", "https://minikreators.com")
 with col3:
-    show_profit = st.button("GP-Cal")
+    show_gp_prompt = st.button("GP-Cal")
 
 if show_quote:
     final_total, profit_amount, quote = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
-    st.markdown(quote)
+    quote_lines = quote.split("\n")[:-1]  # remove the profit line
+    st.markdown("\n".join(quote_lines))
 
-if show_profit:
-    pw = st.text_input("Enter password to view GP-Cal results:", type="password")
+if show_gp_prompt:
+    if "gp_cal_show" not in st.session_state:
+        st.session_state.gp_cal_show = True
+
+if st.session_state.get("gp_cal_show"):
+    pw = st.text_input("Enter password to view GP-Cal results:", type="password", key="gp_pw")
     if pw == "5150":
         final_total, profit_amount, quote = calculate_quote(qty, design_paid, commercial, packaging, keychain, discount_addons, package_tier)
         st.markdown(quote)
+        st.session_state.gp_cal_show = False
     elif pw:
         st.error("Incorrect password.")
+        st.session_state.gp_cal_show = False
 
 st.markdown("\n---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>", unsafe_allow_html=True)
