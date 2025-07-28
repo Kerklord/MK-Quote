@@ -30,6 +30,7 @@ def calculate_quote(
         discount_rate = 0.02
     else:
         discount_rate = 0.0
+    # Package-specific figure discounts
     if package_tier == "Premium Package":
         discount_rate = 0.10
     if package_tier == "Enterprise Package":
@@ -51,8 +52,8 @@ def calculate_quote(
     # Add-on fees
     char_design_fee = 0 if design_paid else 85
     commercial_rights = 0 if package_tier in ["Pro Package", "Premium Package", "Enterprise Package"] else (25 if commercial else 0)
-    packaging_design_fee = 0 if packaging_design_paid else (100 if packaging_design else 0)
-    branding_fee = 0 if branding_paid else (85 if packaging_design else 0)
+    packaging_design_fee = 0 if packaging_design_paid else (100 if packaging else 0)
+    branding_fee = 0 if branding_paid else (85 if packaging else 0)
     ad_fee = 500 if package_tier == "Premium Package" else 0
     sourcing_fee = 25 if part_sourcing else 0
     custom_parts_fee = custom_parts_qty * 4 * qty
@@ -64,9 +65,10 @@ def calculate_quote(
 
     # Apply add-on discounts
     if add_on_discount > 0:
-        for attr in ["commercial_rights","packaging_design_fee","branding_fee", 
-                     "ad_fee","sourcing_fee","custom_parts_fee",
-                     "packaging_cost","keychain_cost","lp_fee","dom_fee"]:
+        for attr in [
+            "commercial_rights","packaging_design_fee","branding_fee", 
+            "ad_fee","sourcing_fee","custom_parts_fee",
+            "packaging_cost","keychain_cost","lp_fee","dom_fee"]:
             val = locals()[attr]
             locals()[attr] = val * (1 - add_on_discount)
     
@@ -99,32 +101,48 @@ def calculate_quote(
             svc *= 1.03
 
     # Final totals
-    final = (figures_total + char_design_fee + commercial_rights + packaging_design_fee +
-             branding_fee + ad_fee + sourcing_fee + custom_parts_fee + creation_fee +
-             packaging_cost + keychain_cost + lp_fee + dom_fee + ship_cost + svc)
+    final = (
+        figures_total + char_design_fee + commercial_rights + packaging_design_fee + 
+        branding_fee + ad_fee + sourcing_fee + custom_parts_fee + creation_fee +
+        packaging_cost + keychain_cost + lp_fee + dom_fee + ship_cost + svc
+    )
     cost_basis = base_cost + packaging_cost + ship_cost + (custom_parts_fee * 0.5)
     profit = final - cost_basis
 
     # Build summary
     title = "### Quote Summary with Profit" if with_profit else "### Quote Summary"
-    lines = [title,
-             f"- Package: {package_tier}",
-             f"- Quantity: {qty}",
-             f"- Figure Discount: {discount_rate*100:.0f}%",  
-             f"- Figures Total: ${figures_total:.2f}",
-             f"- Unit Price per Figure: ${unit_price:.2f}"]
-    if not design_paid: lines.append(f"- Character Design: ${char_design_fee:.2f}")
-    if commercial_rights: lines.append(f"- Commercial Rights: ${commercial_rights:.2f}")
-    if packaging_design_fee: lines.append(f"- Packaging Design: ${packaging_design_fee:.2f}")
-    if branding_fee: lines.append(f"- Branding Removal: ${branding_fee:.2f}")
-    if ad_fee: lines.append(f"- 2D/3D Ad Package: ${ad_fee:.2f}")
-    if part_sourcing: lines.append(f"- Part Sourcing: ${sourcing_fee:.2f}")
-    if custom_parts_qty>0: lines.append(f"- Custom Parts ({custom_parts_qty} ea): ${custom_parts_fee:.2f}")
-    if custom_part_creation: lines.append(f"- Custom Part Creation: ${creation_fee:.2f}")
-    if packaging: lines.append(f"- Packaging Production: ${packaging_cost:.2f}")
-    if keychain: lines.append(f"- Keychains: ${keychain_cost:.2f}")
-    if landing_page: lines.append(f"- Landing Page: ${lp_fee:.2f}")
-    if domain_count>0: lines.append(f"- Domains: ${dom_fee:.2f}")
+    lines = [
+        title,
+        f"- Package: {package_tier}",
+        f"- Quantity: {qty}",
+        f"- Figure Discount: {discount_rate*100:.0f}%",  
+        f"- Figures Total: ${figures_total:.2f}",
+        f"- Unit Price per Figure: ${unit_price:.2f}"
+    ]
+    if not design_paid:
+        lines.append(f"- Character Design: ${char_design_fee:.2f}")
+    if commercial_rights:
+        lines.append(f"- Commercial Rights: ${commercial_rights:.2f}")
+    if packaging_design_fee:
+        lines.append(f"- Packaging Design: ${packaging_design_fee:.2f}")
+    if branding_fee:
+        lines.append(f"- Branding Removal: ${branding_fee:.2f}")
+    if ad_fee:
+        lines.append(f"- 2D/3D Ad Package: ${ad_fee:.2f}")
+    if sourcing_fee:
+        lines.append(f"- Part Sourcing: ${sourcing_fee:.2f}")
+    if custom_parts_qty > 0:
+        lines.append(f"- Custom Parts ({custom_parts_qty} ea): ${custom_parts_fee:.2f}")
+    if custom_part_creation:
+        lines.append(f"- Custom Part Creation: ${creation_fee:.2f}")
+    if packaging:
+        lines.append(f"- Packaging Production: ${packaging_cost:.2f}")
+    if keychain:
+        lines.append(f"- Keychains: ${keychain_cost:.2f}")
+    if landing_page:
+        lines.append(f"- Landing Page: ${lp_fee:.2f}")
+    if domain_count > 0:
+        lines.append(f"- Domains: ${dom_fee:.2f}")
     lines.append(f"- Shipping: ${ship_cost:.2f}")
     lines.append(f"- Service Charge: ${svc:.2f}")
     lines.append(f"- **Total: ${final:.2f}**")
@@ -146,87 +164,133 @@ shipping_address = st.text_input("Shipping Address")
 
 # Package selection
 st.subheader("Select Package")
-package_tier = st.selectbox("Package", ["Starter Package","Pro Package","Premium Package","Enterprise Package"])
-if package_tier=="Starter Package":
+package_tier = st.selectbox(
+    "Package", 
+    ["Starter Package", "Pro Package", "Premium Package", "Enterprise Package"]
+)
+if package_tier == "Starter Package":
     st.markdown("Includes: 25 figures + Character Design")
-elif package_tier=="Pro Package":
+elif package_tier == "Pro Package":
     st.markdown("Includes: Starter + Priority Review + 10% off add-ons + Commercial Rights + Part Sourcing")
-elif package_tier=="Premium Package":
+elif package_tier == "Premium Package":
     st.markdown("Includes: Pro + Custom Packaging + 2D/3D Ad + 10% off add-ons")
-elif package_tier=="Enterprise Package":
+elif package_tier == "Enterprise Package":
     st.markdown("Includes: Premium + Remove Branding + Part Sourcing + 15% off add-ons")
 
 # Add-ons
 st.subheader("Add-ons")
-com_disabled = package_tier in ["Pro Package","Premium Package","Enterprise Package"]
-pack_disabled = (package_tier=="Premium Package") or packaging_design_paid
-landing_disabled = (package_tier=="Enterprise Package")
+com_disabled = package_tier in ["Pro Package", "Premium Package", "Enterprise Package"]
+pack_disabled = (package_tier == "Premium Package") or packaging_design_paid
+landing_disabled = (package_tier == "Enterprise Package")
 
 commercial = st.checkbox("Commercial Rights ($25)", disabled=com_disabled)
-packaging_design = st.checkbox("Custom Packaging ($100)", disabled=pack_disabled)
-branding_removal = st.checkbox("Remove Branding ($85)", disabled=not packaging_design or branding_paid)
+packaging = st.checkbox("Custom Packaging ($100)", disabled=pack_disabled)
+packaging_design = packaging  # alias for clarity
+branding_removal = st.checkbox("Remove Branding ($85)", disabled=not packaging or branding_paid)
 keychain = st.checkbox("Convert to Keychains ($3)")
 custom_parts_qty = st.number_input("Custom Parts per Figure ($4)", min_value=0)
 custom_part_creation = st.checkbox("Create Custom Part ($150)")
 part_sourcing = st.checkbox("We handle Part Sourcing ($25)")
 landing_page = st.checkbox("Custom Landing Page ($350)", disabled=landing_disabled)
-if package_tier=="Enterprise Package": landing_page=True
+if package_tier == "Enterprise Package":
+    landing_page = True
 
 domain_count = st.number_input("Custom Domains ($85 each)", min_value=0)
 
 # Actions
-col1,col2,col3=st.columns(3)
+col1, col2, col3 = st.columns(3)
 with col1:
     show_quote = st.button("Calculate Quote")
 with col2:
     show_custom = st.button("Custom Part Quote")
 with col3:
-    st.link_button("Return to MiniKreators","https://minikreators.com")
+    st.link_button("Return to MiniKreators", "https://minikreators.com")
 show_gp = col3.button("GP-Cal")
 
 # Display custom part quote
 if show_custom:
-    _,_,raw=calculate_quote(qty,design_paid,packaging_design_paid,branding_paid,
-                             commercial,packaging_design,keychain,custom_parts_qty,
-                             custom_part_creation,part_sourcing,
-                             landing_page,domain_count,package_tier,False)
-    # parse lines
-    lines=raw.split("\n")
-    # filter only custom part related
-    cp_lines=[l for l in lines if any(tag in l for tag in ["Custom Parts","Custom Part Creation","Shipping","Service Charge","Commercial Rights"])
-             or l.startswith("###")]
+    _, _, raw = calculate_quote(
+        qty, design_paid, packaging_design_paid, branding_paid,
+        commercial,
+        packaging,
+        packaging,  # packaging_design param
+        keychain,
+        custom_parts_qty,
+        custom_part_creation,
+        part_sourcing,
+        landing_page,
+        domain_count,
+        package_tier,
+        False
+    )
+    lines = raw.split("\n")
+    cp_lines = [l for l in lines if any(
+        tag in l for tag in [
+            "Custom Parts", "Custom Part Creation",
+            "Shipping", "Service Charge", "Commercial Rights"
+        ]
+    ) or l.startswith("###")]
     st.markdown("\n".join(cp_lines))
 
 # Display full quote
 if show_quote:
-    total,profit,text=calculate_quote(qty,design_paid,packaging_design_paid,branding_paid,
-                                     commercial,packaging_design,keychain,custom_parts_qty,
-                                     custom_part_creation,part_sourcing,
-                                     landing_page,domain_count,package_tier,False)
+    total, profit, text = calculate_quote(
+        qty, design_paid, packaging_design_paid, branding_paid,
+        commercial,
+        packaging,
+        packaging,  # packaging_design param
+        keychain,
+        custom_parts_qty,
+        custom_part_creation,
+        part_sourcing,
+        landing_page,
+        domain_count,
+        package_tier,
+        False
+    )
     st.markdown(text)
-    st.markdown("⚠️ Disclaimer: Estimate only. For accurate quote, visit https://shopqzr.com/create-a-kreator")
+    st.markdown(
+        "⚠️ Disclaimer: Estimate only. For accurate quote, visit https://shopqzr.com/create-a-kreator"
+    )
 
 # GP-Cal section
 if show_gp:
-    st.session_state["show_gp"]=True
+    st.session_state["show_gp"] = True
 if st.session_state.get("show_gp"):
-    pw=st.text_input("Password",type="password")
-    if pw=="5150":
-        _,_,text=calculate_quote(qty,design_paid,packaging_design_paid,branding_paid,
-                                 commercial,packaging_design,keychain,custom_parts_qty,
-                                 custom_part_creation,part_sourcing,
-                                 landing_page,domain_count,package_tier,True)
+    pw = st.text_input("Password", type="password")
+    if pw == "5150":
+        _, _, text = calculate_quote(
+            qty, design_paid, packaging_design_paid, branding_paid,
+            commercial,
+            packaging,
+            packaging,
+            keychain,
+            custom_parts_qty,
+            custom_part_creation,
+            part_sourcing,
+            landing_page,
+            domain_count,
+            package_tier,
+            True
+        )
         st.markdown(text)
-        st.markdown("⚠️ Disclaimer: Estimate only. For accurate quote, visit https://shopqzr.com/create-a-kreator")
-        st.session_state["show_gp"]=False
-    elif pw=="5051":
-        new_base=st.number_input("Service Charge Base",value=st.session_state.service_base)
+        st.markdown(
+            "⚠️ Disclaimer: Estimate only. For accurate quote, visit https://shopqzr.com/create-a-kreator"
+        )
+        st.session_state["show_gp"] = False
+    elif pw == "5051":
+        new_base = st.number_input(
+            "Service Charge Base", value=st.session_state.service_base
+        )
         if st.button("Update Service Charge"):
-            st.session_state.service_base=new_base
+            st.session_state.service_base = new_base
             st.success(f"Service base updated to ${new_base}")
-            st.session_state["show_gp"]=False
+            st.session_state["show_gp"] = False
     elif pw:
         st.error("Incorrect password")
 
 # Footer
-st.markdown("---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>",unsafe_allow_html=True)
+st.markdown(
+    "---\n<center>Qazer Inc. © 2025 All Rights Reserved.</center>",
+    unsafe_allow_html=True
+)
